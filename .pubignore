@@ -1,0 +1,8 @@
+.dart_tool/
+build/
+dist/
+doc/api/
+*.dSYM/
+.DS_Store
+pubspec.lock
+PLAN.md

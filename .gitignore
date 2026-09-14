@@ -1,0 +1,6 @@
+.dart_tool/
+build/
+dist/
+doc/api/
+*.dSYM/
+.DS_Store
