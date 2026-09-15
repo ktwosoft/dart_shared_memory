@@ -1,3 +1,10 @@
+## 0.1.1
+
+- Restore `code_assets` 1.x compatibility for Flutter macOS applications using
+  `objective_c`, with a compatible native C toolchain.
+- Allow hook and toolchain versions compatible with Flutter’s pinned `meta`
+  dependency, without application-level version overrides.
+
 ## 0.1.0
 
 - Named native contexts shared across isolates.

@@ -18,6 +18,10 @@ Requires Dart 3.12 or later and a C++17 compiler. Dart build hooks compile the
 native library automatically. On macOS, install Xcode Command Line Tools with
 `xcode-select --install` if they are not already installed.
 
+The build hook uses `code_assets` 1.x so Flutter applications can resolve it
+alongside `objective_c` and other native packages that require that major
+version.
+
 Version 0.1.0 has been tested on **macOS arm64**, including an AOT CLI bundle.
 Other native platforms need toolchain and runtime validation. Web is unsupported.
 
