@@ -149,6 +149,20 @@ struct Result : SSResult {
   }
 };
 
+struct KeysResult : SSKeysResult {
+  Charge charge;
+  std::vector<SSKey> records;
+  std::vector<uint8_t> data;
+  KeysResult(std::shared_ptr<Budget> budget, int64_t n, int64_t bytes)
+      : charge(budget, 128 + n * 32 + bytes) {
+    checkpoint();
+    records.resize(n);
+    data.resize(bytes);
+    count = n;
+    keys = records.data();
+  }
+};
+
 std::shared_ptr<Context> context(void *h) {
   require(h != nullptr);
   return static_cast<Handle *>(h)->context;
@@ -254,6 +268,47 @@ int32_t ss_open(const uint8_t *name, int64_t n, const SSLimits *limits, void **o
 void ss_close(void *handle) { delete static_cast<Handle *>(handle); }
 
 void ss_result_free(SSResult *result) { delete static_cast<Result *>(result); }
+
+void ss_keys_result_free(SSKeysResult *result) { delete static_cast<KeysResult *>(result); }
+
+int32_t ss_keys(void *handle, const uint8_t *prefix, int64_t n, SSKeysResult **out) {
+  if (out)
+    *out = nullptr;
+  return boundary([&] {
+    require(out);
+    auto c = context(handle);
+    require(n >= 0 && n <= c->limits.max_key &&
+            (n == 0 || utf8(prefix, n)));
+    const std::string start(n == 0 ? "" : reinterpret_cast<const char *>(prefix), n);
+    std::shared_lock<std::shared_mutex> directory(c->directory_mutex);
+    int64_t count = 0;
+    int64_t bytes = 0;
+    auto first = c->entries.lower_bound(start);
+    for (auto it = first; it != c->entries.end(); ++it) {
+      const auto &key = it->first;
+      if (key.compare(0, start.size(), start) != 0)
+        break;
+      require(count < c->limits.max_keys, 3);
+      require(static_cast<int64_t>(key.size()) <= c->limits.max_operation - bytes, 3);
+      count++;
+      bytes += key.size();
+    }
+    auto result = std::make_unique<KeysResult>(c->budget, count, bytes);
+    int64_t offset = 0;
+    size_t index = 0;
+    for (auto it = first; it != c->entries.end(); ++it) {
+      const auto &key = it->first;
+      if (key.compare(0, start.size(), start) != 0)
+        break;
+      auto &item = result->records[index++];
+      item.size = key.size();
+      item.key = result->data.data() + offset;
+      std::memcpy(result->data.data() + offset, key.data(), key.size());
+      offset += key.size();
+    }
+    *out = result.release();
+  });
+}
 
 int32_t ss_read(void *handle, const SSInput *in, int64_t n, SSResult **out) {
   if (out)

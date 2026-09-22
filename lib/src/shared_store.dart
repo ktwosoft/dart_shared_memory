@@ -107,6 +107,39 @@ final class SharedStore implements Finalizable {
     });
   }
 
+  /// Copies live keys matching the literal [prefix] in bytewise sorted order.
+  ///
+  /// An empty prefix matches all keys. The result is immutable and bounded by
+  /// [StoreLimits.maxKeysPerOperation] and [StoreLimits.maxOperationBytes].
+  /// Concurrent changes after this call may differ from a later [read].
+  /// Resource failures return no partial list.
+  List<String> keys({String prefix = ''}) {
+    _ensureOpen();
+    final encoded = prefix.isEmpty
+        ? Uint8List(0)
+        : _encodeKey(prefix, limits.maxKeyBytes);
+    return using((arena) {
+      final output = arena<Pointer<native.NativeKeysResult>>();
+      output.value = nullptr;
+      final code = native.keysStore(
+        _handle,
+        _copy(arena, encoded),
+        encoded.length,
+        output,
+      );
+      try {
+        _check(code);
+        final result = output.value.ref;
+        return List<String>.unmodifiable([
+          for (var i = 0; i < result.count; i++)
+            utf8.decode(result.keys[i].key.asTypedList(result.keys[i].size)),
+        ]);
+      } finally {
+        if (output.value != nullptr) native.freeKeysResult(output.value);
+      }
+    });
+  }
+
   /// Applies all [changes] atomically only if every entry in [checks] matches.
   ///
   /// A null check requires absence at commit time. A revision check requires

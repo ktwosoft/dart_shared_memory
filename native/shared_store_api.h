@@ -57,6 +57,17 @@ typedef struct {
   const SSValue *values;
 } SSResult;
 
+/* Copied key names in bytewise sorted order. Key pointers live until freed. */
+typedef struct {
+  const uint8_t *key;
+  int64_t size;
+} SSKey;
+
+typedef struct {
+  int64_t count;
+  const SSKey *keys;
+} SSKeysResult;
+
 /* Returns the ABI version expected by these declarations. */
 SS_EXPORT int32_t ss_abi_version(void);
 
@@ -76,6 +87,16 @@ SS_EXPORT void ss_close(void *handle);
  */
 SS_EXPORT int32_t ss_read(void *handle, const SSInput *inputs, int64_t count,
                           SSResult **out_result);
+
+/* Enumerates a consistent, bounded copy of keys matching a literal UTF-8
+ * prefix. An empty prefix matches all keys. On limit failure there is no
+ * partial result. Free success with ss_keys_result_free.
+ */
+SS_EXPORT int32_t ss_keys(void *handle, const uint8_t *prefix, int64_t prefix_size,
+                          SSKeysResult **out_result);
+
+/* Frees a returned key result. NULL is allowed. */
+SS_EXPORT void ss_keys_result_free(SSKeysResult *result);
 
 /* Validates every precondition and publishes every change or none. Successful
  * output contains revision metadata; conflict returns 1 and no result.

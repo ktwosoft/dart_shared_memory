@@ -4,7 +4,7 @@ Share named maps of string keys and binary values between Dart isolates using
 native memory. Each isolate opens its own handle to the same store. Reads return
 copied snapshots; conditional commits change multiple entries atomically.
 
-The API has four operations: **open, read, commit, close**. Calls are synchronous.
+The API has five operations: **open, read, keys, commit, close**. Calls are synchronous.
 The C++17 implementation owns storage and locks; Dart owns encoding and application
 logic. No coordinator isolate or external service is required.
 
@@ -86,6 +86,13 @@ backoff; calculations that may repeat should not perform external side effects.
 
 Single-entry operations use batches of one. A read rejects duplicate keys and
 accepts an empty batch. A commit requires at least one change.
+
+`keys(prefix: '')` returns an immutable bytewise-sorted copy of matching live
+keys. The empty prefix matches every key. The result is bounded by
+`maxKeysPerOperation` and `maxOperationBytes`; exceeding either fails without
+returning a partial list. Enumeration and a later read are separate operations,
+so a concurrent insertion may appear on the next call. The native library
+holds its directory read lock only while selecting and copying keys.
 
 | Check | Change | Meaning |
 |---|---|---|

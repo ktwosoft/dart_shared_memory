@@ -1,3 +1,7 @@
+## 0.1.2
+
+- Add bounded, copied, prefix-filtered key enumeration across isolates.
+
 ## 0.1.1
 
 - Restore `code_assets` 1.x compatibility for Flutter macOS applications using

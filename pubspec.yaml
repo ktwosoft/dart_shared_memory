@@ -1,5 +1,5 @@
 name: dart_shared_memory
-version: 0.1.1
+version: 0.1.2
 description: In-memory key-value stores shared across Dart isolates, with binary values and atomic updates.
 homepage: https://github.com/ktwosoft/dart_shared_memory
 repository: https://github.com/ktwosoft/dart_shared_memory

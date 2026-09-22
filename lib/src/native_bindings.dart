@@ -52,6 +52,18 @@ final class NativeResult extends Struct {
   external Pointer<NativeValue> values;
 }
 
+final class NativeKey extends Struct {
+  external Pointer<Uint8> key;
+  @Int64()
+  external int size;
+}
+
+final class NativeKeysResult extends Struct {
+  @Int64()
+  external int count;
+  external Pointer<NativeKey> keys;
+}
+
 @Native<Int32 Function()>(symbol: 'ss_abi_version')
 external int abiVersion();
 @Native<
@@ -98,5 +110,21 @@ external int commitStore(
   int count,
   Pointer<Pointer<NativeResult>> output,
 );
+@Native<
+  Int32 Function(
+    Pointer<Void>,
+    Pointer<Uint8>,
+    Int64,
+    Pointer<Pointer<NativeKeysResult>>,
+  )
+>(symbol: 'ss_keys')
+external int keysStore(
+  Pointer<Void> handle,
+  Pointer<Uint8> prefix,
+  int prefixSize,
+  Pointer<Pointer<NativeKeysResult>> output,
+);
+@Native<Void Function(Pointer<NativeKeysResult>)>(symbol: 'ss_keys_result_free')
+external void freeKeysResult(Pointer<NativeKeysResult> output);
 @Native<Void Function(Pointer<NativeResult>)>(symbol: 'ss_result_free')
 external void freeResult(Pointer<NativeResult> output);
