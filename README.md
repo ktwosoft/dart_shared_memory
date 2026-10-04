@@ -25,6 +25,13 @@ version.
 Version 0.1.0 has been tested on **macOS arm64**, including an AOT CLI bundle.
 Other native platforms need toolchain and runtime validation. Web is unsupported.
 
+On Windows the build hook enables MSVC C++ exception unwinding (`/EHsc`). This
+is required even though the C ABI converts exceptions into status codes: an
+expected commit conflict throws while native locks are held, and unwinding
+releases those locks and temporary memory charges. The native source rejects
+MSVC builds without unwinding enabled. Custom builds and the standalone native
+test harness must also enable `/EHsc`.
+
 ## Quick start
 
 ```dart

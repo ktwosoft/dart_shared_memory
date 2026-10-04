@@ -13,6 +13,8 @@ void main(List<String> args) async {
       assetName: 'src/native_bindings.dart',
       language: Language.cpp,
       std: 'c++17',
+      // Native error handling must unwind RAII locks and memory charges.
+      flags: [if (input.config.code.targetOS == OS.windows) '/EHsc'],
       sources: ['native/shared_store.cpp'],
       includes: ['native'],
       libraries: [if (input.config.code.targetOS == OS.linux) 'pthread'],

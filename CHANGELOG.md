@@ -1,3 +1,10 @@
+## 0.1.3
+
+- Enable MSVC C++ exception unwinding so commit conflicts release native locks
+  and temporary memory instead of hanging subsequent calls on Windows.
+- Reject MSVC builds without exception unwinding and cover lock release after
+  a conflicting create in the native regression harness.
+
 ## 0.1.2
 
 - Add bounded, copied, prefix-filtered key enumeration across isolates.

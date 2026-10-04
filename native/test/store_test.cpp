@@ -49,6 +49,12 @@ int main() {
     assert(ss_commit(h, create, 2, &out) == 0);
     ss_result_free(out);
   }
+  // A conflicting create throws while holding the directory and entry locks.
+  // Unwinding must release both locks and restore temporary memory charges so
+  // the following read can complete, including on MSVC builds.
+  const auto bytes_before_conflict = context(h)->budget->used.load();
+  assert(ss_commit(h, create, 2, &out) == 1 && out == nullptr);
+  assert(context(h)->budget->used.load() == bytes_before_conflict);
   SSInput read[2] = {input("a"), input("b")};
   assert(ss_read(h, read, 2, &out) == 0);
   SSInput remove[2] = {input("a", 2, 0, out->values[0].context, out->values[0].revision),

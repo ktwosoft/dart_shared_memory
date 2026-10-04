@@ -1,4 +1,8 @@
 #include "shared_store_api.h"
+
+#if defined(_MSC_VER) && !defined(_CPPUNWIND)
+#error "dart_shared_memory requires C++ exception unwinding; compile with /EHsc."
+#endif
 #include <algorithm>
 #include <atomic>
 #include <cstring>
